@@ -49,7 +49,7 @@ jobs:
 
           # Formátování dat pro Infogram
           formatted_data = [["Date","Close"]] + df.apply(
-              lambda r: [r['Datetime'].strftime('%Y-%m-%d %H:%M'), f"{r['close']:.2f}".replace('.', ',')],
+              lambda r: [r['Datetime'].strftime('%Y-%m-%d %H:%M'), f"{float(r['close']):.2f}".replace('.', ',')],
               axis=1
           ).tolist()
 
