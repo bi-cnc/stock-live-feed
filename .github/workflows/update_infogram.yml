@@ -1,27 +1,4 @@
-name: Update Infogram
-
-on:
-  workflow_run:
-    workflows: ["Update Stock Data"]  # spustí se, až doběhne první workflow
-    types:
-      - completed
-
-jobs:
-  update-infogram:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install pandas requests
-
-      - name: Run Infogram update script
+      - name: Run Infogram update script for AAPL only
         env:
           INFOGRAM_TOKEN: ${{ secrets.INFOGRAM_TOKEN }}
         run: |
@@ -37,7 +14,7 @@ jobs:
           TABLE_ID = "68d55051-d6bf-46bd-9b48-8b0639858bbd54461150-171d-4ce3-b72e-c13f6280ed4a"
           TEXT_ID  = "309a7402-037d-4a43-bc29-992172d2a2113202c46a-9d89-4e73-8012-28c354b81871"
 
-          # Funkce pro zpracování CSV a aktualizaci Infogramu
+          # Funkce pro zpracování CSV a aktualizaci Infogramu pro AAPL
           def process_ticker(ticker):
               CSV_URL = f"https://raw.githubusercontent.com/bi-cnc/stock-live-feed/main/data/{ticker}.csv"
               df = pd.read_csv(CSV_URL)
@@ -78,10 +55,7 @@ jobs:
                   print(f"Failed to update {ticker}: {r.status_code}")
                   print('Response:', r.json())
 
-          # Projít všechny tickery v data/ složce
-          tickers = [f.replace('.csv', '') for f in os.listdir('./data') if f.endswith('.csv')]
-
-          for ticker in tickers:
-              process_ticker(ticker)
+          # Pro ticker AAPL
+          process_ticker('AAPL')
 
           PYCODE
