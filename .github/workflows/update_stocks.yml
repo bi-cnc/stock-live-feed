@@ -1,9 +1,9 @@
 name: Update Stock Data
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"   # každých 15 minut
-  workflow_dispatch:
+  # schedule:
+  #  - cron: "*/15 * * * *"   # každých 15 minut
+#  workflow_dispatch:
 
 jobs:
   update:
