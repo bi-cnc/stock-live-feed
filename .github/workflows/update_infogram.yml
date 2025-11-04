@@ -1,0 +1,87 @@
+name: Update Infogram
+
+on:
+  workflow_run:
+    workflows: ["Update Stock Data"]  # spustí se, až doběhne první workflow
+    types:
+      - completed
+
+jobs:
+  update-infogram:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pandas requests
+
+      - name: Run Infogram update script
+        env:
+          INFOGRAM_TOKEN: ${{ secrets.INFOGRAM_TOKEN }}
+        run: |
+          python3 <<'PYCODE'
+          import requests, pandas as pd
+          import os
+
+          API_KEY = "${{ secrets.INFOGRAM_TOKEN }}"
+          BASE_URL = 'https://api.infogram.com'
+
+          PROJECT_ID = "c15d3b49-baf0-4d0f-96f1-6a95bf9699ce"
+          CHART_ID = "54a7e541-f09d-43a7-b094-d437e4b6996d4c191cb6-857a-4ef2-a4ba-7f391b616354"
+          TABLE_ID = "68d55051-d6bf-46bd-9b48-8b0639858bbd54461150-171d-4ce3-b72e-c13f6280ed4a"
+          TEXT_ID  = "309a7402-037d-4a43-bc29-992172d2a2113202c46a-9d89-4e73-8012-28c354b81871"
+
+          # Funkce pro zpracování CSV a aktualizaci Infogramu
+          def process_ticker(ticker):
+              CSV_URL = f"https://raw.githubusercontent.com/bi-cnc/stock-live-feed/main/data/{ticker}.csv"
+              df = pd.read_csv(CSV_URL)
+
+              df = df[['Datetime','close']]
+              df['Datetime'] = pd.to_datetime(df['Datetime'])
+              df = df.sort_values('Datetime')
+
+              # Připravení dat pro graf
+              formatted_data = [["Date","Close"]] + df.apply(
+                  lambda r: [r['Datetime'].strftime('%Y-%m-%d %H:%M'), f"{r['close']:.2f}".replace('.', ',')],
+                  axis=1
+              ).tolist()
+
+              chart_data = {"type":"chart","chart_type":"line","data":[{"title":ticker,"data":formatted_data}]}
+              table_data = {"type":"table","header":True,"data":[{"title":"Poslední hodnoty","data":formatted_data[-5:]}]}
+
+              last, prev = df.iloc[-1]['close'], df.iloc[-2]['close']
+              change, pct = last - prev, (last - prev)/prev*100
+              text_value = f"{ticker} {last:.2f} USD ({'+' if change>0 else ''}{change:.2f}, {pct:.2f}%)"
+
+              payload = {
+                  "projectId": PROJECT_ID,
+                  "entities": {
+                      CHART_ID: chart_data,
+                      TABLE_ID: table_data,
+                      TEXT_ID: text_value
+                  }
+              }
+
+              r = requests.post(f"{BASE_URL}/updateProjectEntities",
+                                headers={"Authorization": f"Bearer {API_KEY}",
+                                         "Content-Type":"application/json"},
+                                json=payload)
+              if r.status_code == 200:
+                  print(f"{ticker} updated successfully!")
+              else:
+                  print(f"Failed to update {ticker}: {r.status_code}")
+                  print('Response:', r.json())
+
+          # Projít všechny tickery v data/ složce
+          tickers = [f.replace('.csv', '') for f in os.listdir('./data') if f.endswith('.csv')]
+
+          for ticker in tickers:
+              process_ticker(ticker)
+
+          PYCODE
