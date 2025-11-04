@@ -47,8 +47,10 @@ jobs:
           df['Datetime'] = pd.to_datetime(df['Datetime'])
           df = df.sort_values('Datetime')
 
-          # Formátování dat pro Infogram
-          formatted_data = [["Date","Close"]] + df.apply(
+          df['Datetime'] = pd.to_datetime(df['Datetime'], errors='coerce')  # Převod na datetime, nevalidní hodnoty budou NaT
+          df = df.dropna(subset=['Datetime'])  # Odstraní řádky s NaT hodnotami v 'Datetime'
+          
+          formatted_data = [["Date", "Close"]] + df.apply(
               lambda r: [r['Datetime'].strftime('%Y-%m-%d %H:%M'), f"{float(r['close']):.2f}".replace('.', ',')],
               axis=1
           ).tolist()
