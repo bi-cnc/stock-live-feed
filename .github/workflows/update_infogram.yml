@@ -33,7 +33,7 @@ jobs:
           BASE_URL = 'https://api.infogram.com'
 
           # AAPL project and chart IDs
-          PROJECT_ID = "bb77edf6-42c9-4e77-b353-b791f6314ddf"
+          PROJECT_ID = "c15d3b49-baf0-4d0f-96f1-6a95bf9699ce"
           CHART_ID = "54a7e541-f09d-43a7-b094-d437e4b6996d4c191cb6-857a-4ef2-a4ba-7f391b616354"
           TABLE_ID = "68d55051-d6bf-46bd-9b48-8b0639858bbd54461150-171d-4ce3-b72e-c13f6280ed4a"
           TEXT_ID  = "309a7402-037d-4a43-bc29-992172d2a2113202c46a-9d89-4e73-8012-28c354b81871"
