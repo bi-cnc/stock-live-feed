@@ -58,9 +58,16 @@ jobs:
           chart_data = {"type":"chart","chart_type":"line","data":[{"title":"AAPL","data":formatted_data}]}
           table_data = {"type":"table","header":True,"data":[{"title":"Poslední hodnoty","data":formatted_data[-5:]}]}
 
+          # Ujistíme se, že sloupec 'close' je typu float
+          df['close'] = pd.to_numeric(df['close'], errors='coerce')  # Převede na numerické hodnoty, NaN pro nevalidní
+          
+          # Odstraníme řádky s NaN v 'close'
+          df = df.dropna(subset=['close'])
+          
+          # Nyní spočítáme změny mezi posledními hodnotami
           last, prev = df.iloc[-1]['close'], df.iloc[-2]['close']
-          change, pct = last - prev, (last - prev)/prev*100
-          text_value = f"AAPL {last:.2f} USD ({'+' if change>0 else ''}{change:.2f}, {pct:.2f}%)"
+          change, pct = last - prev, (last - prev) / prev * 100
+          text_value = f"AAPL {last:.2f} USD ({'+' if change > 0 else ''}{change:.2f}, {pct:.2f}%)"
 
           # Payload pro update
           payload = {
