@@ -1,9 +1,9 @@
 name: Update Infogram - AAPL
 
 on:
-  workflow_run:
-    workflows: ["Update Stock Data"]  # spustí se, až doběhne první workflow
-    types:
+#  workflow_run:
+#    workflows: ["Update Stock Data"]  # spustí se, až doběhne první workflow
+#    types:
       - completed
 
 jobs:
